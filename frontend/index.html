@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmAssist ML - Smart Agriculture Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #0a0e1a;
+            color: #e5e7eb;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-right: 1px solid rgba(34, 197, 94, 0.1);
+        }
+
+        .nav-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+        }
+
+        .nav-item.active {
+            background: rgba(34, 197, 94, 0.15);
+            border-left-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 20px 60px rgba(34, 197, 94, 0.1);
+        }
+
+        .input-field {
+            background: #0a0e1a;
+            border: 2px solid #1e293b;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: #64748b;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: #ffffff;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(34, 197, 94, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        .result-card {
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            border: 3px solid rgba(34, 197, 94, 0.1);
+            border-top: 3px solid #22c55e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .label-text {
+            color: #e5e7eb;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        select.input-field {
+            cursor: pointer;
+        }
+
+        select.input-field option {
+            background: #0a0e1a;
+            color: #ffffff;
+        }
+
+        .section-hidden {
+            display: none;
+        }
+
+        .topbar {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.1);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .market-item {
+            background: rgba(34, 197, 94, 0.05);
+            border-left: 3px solid #22c55e;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .market-item:hover {
+            background: rgba(34, 197, 94, 0.1);
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 50;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuBtn" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white">
+        <i class="fas fa-bars text-xl"></i>
+    </button>
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar w-64 h-full overflow-y-auto flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold glow-text flex items-center gap-2">
+                    <i class="fas fa-seedling"></i>
+                    FarmAssist ML
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Smart Agriculture Platform</p>
+            </div>
+
+            <nav class="mt-6">
+                <a href="#" class="nav-item active flex items-center gap-3 px-6 py-3 text-sm" data-section="crop-recommend">
+                    <i class="fas fa-leaf w-5"></i>
+                    <span>Crop Recommendation</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="profit">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Profit Suggestor</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="forecast">
+                    <i class="fas fa-chart-area w-5"></i>
+                    <span>Price Forecast</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="markets">
+                    <i class="fas fa-store w-5"></i>
+                    <span>Best Markets</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="fertilizer">
+                    <i class="fas fa-flask w-5"></i>
+                    <span>Fertilizer NPK</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="calendar">
+                    <i class="fas fa-calendar-alt w-5"></i>
+                    <span>Crop Calendar</span>
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-6 py-3 text-sm" data-section="yield">
+                    <i class="fas fa-microchip w-5"></i>
+                    <span>Yield Analysis</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <div class="topbar px-8 py-4 flex items-center justify-between">
+                <div>
+                    <h2 id="pageTitle" class="text-2xl font-bold text-white">Crop Recommendation</h2>
+                    <p id="pageSubtitle" class="text-sm text-gray-400 mt-1">Get AI-powered crop suggestions based on soil and weather data</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-xs text-gray-400">API Status</p>
+                        <p class="text-sm font-semibold text-green-500">● Connected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <!-- Crop Recommendation Section -->
+                <div id="crop-recommend-section" class="content-section">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-leaf text-green-500"></i>
+                            Soil & Weather Parameters
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label class="label-text block">Nitrogen (N)</label>
+                                <input type="number" id="nitrogen" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 90">
+                            </div>
+                            <div>
+                                <label class="label-text block">Phosphorus (P)</label>
+                                <input type="number" id="phosphorus" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 42">
+                            </div>
+                            <div>
+                                <label class="label-text block">Potassium (K)</label>
+                                <input type="number" id="potassium" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 43">
+                            </div>
+                            <div>
+                                <label class="label-text block">Temperature (°C)</label>
+                                <input type="number" step="0.1" id="temperature" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 20.8">
+                            </div>
+                            <div>
+                                <label class="label-text block">Humidity (%)</label>
+                                <input type="number" step="0.1" id="humidity" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 82">
+                            </div>
+                            <div>
+                                <label class="label-text block">pH Level</label>
+                                <input type="number" step="0.1" id="ph" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 6.5">
+                            </div>
+                            <div>
+                                <label class="label-text block">Rainfall (mm)</label>
+                                <input type="number" step="0.1" id="rainfall" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 202.9">
+                            </div>
+                        </div>
+
+                        <button id="btnCropRecommend" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-magic"></i>
+                            Get Recommendation
+                        </button>
+
+                        <div id="cropResult"></div>
+                    </div>
+                </div>
+
+                <!-- Profit Suggestor Section -->
+                <div id="profit-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-green-500"></i>
+                            Location Details
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-text block">State</label>
+                                <input type="text" id="profitState" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Maharashtra">
+                            </div>
+                            <div>
+                                <label class="label-text block">District</label>
+                                <input type="text" id="profitDistrict" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Pune">
+                            </div>
+                        </div>
+
+                        <button id="btnProfit" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-calculator"></i>
+                            Calculate Profit
+                        </button>
+
+                        <div id="profitResult"></div>
+                    </div>
+                </div>
+
+                <!-- Price Forecast Section -->
+                <div id="forecast-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-chart-area text-green-500"></i>
+                            Forecast Parameters
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="label-text block">State</label>
+                                <input type="text" id="forecastState" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Karnataka">
+                            </div>
+                            <div>
+                                <label class="label-text block">District</label>
+                                <input type="text" id="forecastDistrict" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Bangalore">
+                            </div>
+                            <div>
+                                <label class="label-text block">Commodity</label>
+                                <input type="text" id="forecastCommodity" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Tomato">
+                            </div>
+                        </div>
+
+                        <button id="btnForecast" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-crystal-ball"></i>
+                            Generate Forecast
+                        </button>
+
+                        <div id="forecastResult"></div>
+                    </div>
+                </div>
+
+                <!-- Best Markets Section -->
+                <div id="markets-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-store text-green-500"></i>
+                            Find Best Markets
+                        </h3>
+                        
+                        <div class="max-w-md">
+                            <label class="label-text block">Commodity</label>
+                            <input type="text" id="marketCommodity" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Rice">
+                        </div>
+
+                        <button id="btnMarkets" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-search"></i>
+                            Search Markets
+                        </button>
+
+                        <div id="marketsResult"></div>
+                    </div>
+                </div>
+
+                <!-- Fertilizer NPK Section -->
+                <div id="fertilizer-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-flask text-green-500"></i>
+                            NPK Analysis
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label class="label-text block">Crop Type</label>
+                                <input type="text" id="fertilizerCrop" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Wheat">
+                            </div>
+                            <div>
+                                <label class="label-text block">Nitrogen (N)</label>
+                                <input type="number" id="fertilizerN" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 37">
+                            </div>
+                            <div>
+                                <label class="label-text block">Phosphorus (P)</label>
+                                <input type="number" id="fertilizerP" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 0">
+                            </div>
+                            <div>
+                                <label class="label-text block">Potassium (K)</label>
+                                <input type="number" id="fertilizerK" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 0">
+                            </div>
+                        </div>
+
+                        <button id="btnFertilizer" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-vial"></i>
+                            Analyze NPK
+                        </button>
+
+                        <div id="fertilizerResult"></div>
+                    </div>
+                </div>
+
+                <!-- Crop Calendar Section -->
+                <div id="calendar-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-green-500"></i>
+                            Crop Calendar
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="label-text block">State</label>
+                                <input type="text" id="calendarState" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Punjab">
+                            </div>
+                            <div>
+                                <label class="label-text block">District</label>
+                                <input type="text" id="calendarDistrict" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Ludhiana">
+                            </div>
+                        </div>
+
+                        <button id="btnCalendar" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-calendar-check"></i>
+                            View Calendar
+                        </button>
+
+                        <div id="calendarResult"></div>
+                    </div>
+                </div>
+
+                <!-- Yield Analysis Section -->
+                <div id="yield-section" class="content-section section-hidden">
+                    <div class="card p-8">
+                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                            <i class="fas fa-microchip text-green-500"></i>
+                            Explainable Yield Variability Analysis
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label class="label-text block">Field ID</label>
+                                <input type="text" id="yieldFieldID" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., F05" value="F05">
+                            </div>
+                            <div>
+                                <label class="label-text block">Zone ID</label>
+                                <input type="text" id="yieldZoneID" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., Z2" value="Z2">
+                            </div>
+                            <div>
+                                <label class="label-text block">Soil Nitrogen</label>
+                                <input type="number" id="yieldN" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 20" value="20">
+                            </div>
+                            <div>
+                                <label class="label-text block">Soil Phosphorus</label>
+                                <input type="number" id="yieldP" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 40" value="40">
+                            </div>
+                            <div>
+                                <label class="label-text block">Soil Potassium</label>
+                                <input type="number" id="yieldK" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 40" value="40">
+                            </div>
+                            <div>
+                                <label class="label-text block">Temperature (°C)</label>
+                                <input type="number" step="0.1" id="yieldTemp" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 25" value="25.0">
+                            </div>
+                            <div>
+                                <label class="label-text block">Humidity (%)</label>
+                                <input type="number" step="0.1" id="yieldHum" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 60" value="60.0">
+                            </div>
+                            <div>
+                                <label class="label-text block">Rainfall (mm)</label>
+                                <input type="number" step="0.1" id="yieldRain" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 200" value="200.0">
+                            </div>
+                            <div>
+                                <label class="label-text block">Irrigation (Hrs)</label>
+                                <input type="number" step="0.1" id="yieldIrrig" class="input-field w-full px-4 py-3 rounded-lg" placeholder="e.g., 5" value="5">
+                            </div>
+                        </div>
+
+                        <button id="btnYieldAnalyze" class="btn-primary mt-8 px-8 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                            <i class="fas fa-brain"></i>
+                            Analyze Zone Yield
+                        </button>
+
+                        <div id="yieldResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let priceChart = null;
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.add('section-hidden');
+                });
+                
+                // Show selected section
+                const sectionId = item.dataset.section + '-section';
+                document.getElementById(sectionId).classList.remove('section-hidden');
+                
+                // Update page title
+                const titles = {
+                    'crop-recommend': ['Crop Recommendation', 'Get AI-powered crop suggestions based on soil and weather data'],
+                    'profit': ['Profit Suggestor', 'Calculate expected profits for different crops in your region'],
+                    'forecast': ['Price Forecast', 'Predict future commodity prices with ML-powered analytics'],
+                    'markets': ['Best Markets', 'Find the most profitable markets for your produce'],
+                    'fertilizer': ['Fertilizer NPK', 'Get optimal fertilizer recommendations for your crop'],
+                    'calendar': ['Crop Calendar', 'View seasonal crop planting and harvesting schedules'],
+                    'yield': ['Yield Analysis', 'Explainable AI-driven crop yield variability analysis']
+                };
+                
+                const [title, subtitle] = titles[item.dataset.section];
+                document.getElementById('pageTitle').textContent = title;
+                document.getElementById('pageSubtitle').textContent = subtitle;
+
+                // Close mobile menu
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar').classList.remove('mobile-open');
+                }
+            });
+        });
+
+        // Helper functions
+        function showLoading(resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.innerHTML = `
+                <div class="result-card flex flex-col items-center justify-center py-8">
+                    <div class="spinner"></div>
+                    <p class="text-gray-400 mt-4">Processing your request...</p>
+                </div>
+            `;
+        }
+
+        function showError(resultId, message) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.innerHTML = `
+                <div class="result-card border-red-500/30 bg-red-500/5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-circle text-red-500 text-xl mt-1"></i>
+                        <div>
+                            <h4 class="text-lg font-semibold text-red-400 mb-2">Error</h4>
+                            <p class="text-gray-300">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Crop Recommendation
+        document.getElementById('btnCropRecommend').addEventListener('click', async () => {
+            const N = document.getElementById('nitrogen').value;
+            const P = document.getElementById('phosphorus').value;
+            const K = document.getElementById('potassium').value;
+            const temperature = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const ph = document.getElementById('ph').value;
+            const rainfall = document.getElementById('rainfall').value;
+
+            if (!N || !P || !K || !temperature || !humidity || !ph || !rainfall) {
+                showError('cropResult', 'Please fill in all fields');
+                return;
+            }
+
+            showLoading('cropResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/crop/recommend?N=${N}&P=${P}&K=${K}&temperature=${temperature}&humidity=${humidity}&ph=${ph}&rainfall=${rainfall}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const recommendations = data.recommendations || [];
+                    
+                    let html = `
+                        <div class="result-card">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <i class="fas fa-check text-green-500 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-white">Top Crop Recommendations</h4>
+                                    <p class="text-sm text-gray-400">Based on your soil and weather conditions</p>
+                                </div>
+                            </div>
+                    `;
+
+                    if (recommendations.length > 0) {
+                        recommendations.forEach((rec, index) => {
+                            const percentage = (rec.score * 100).toFixed(1);
+                            const barWidth = rec.score * 100;
+                            html += `
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-white font-semibold capitalize">${index + 1}. ${rec.crop}</span>
+                                        <span class="text-green-400 font-bold">${percentage}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                                        <div class="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `<p class="text-gray-400">No recommendations available</p>`;
+                    }
+
+                    html += `</div>`;
+                    document.getElementById('cropResult').innerHTML = html;
+                } else {
+                    showError('cropResult', data.detail || 'Failed to get recommendation');
+                }
+            } catch (error) {
+                showError('cropResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+
+        // Profit Suggestor
+        document.getElementById('btnProfit').addEventListener('click', async () => {
+            const state = document.getElementById('profitState').value;
+            const district = document.getElementById('profitDistrict').value;
+
+            if (!state || !district) {
+                showError('profitResult', 'Please fill in both state and district');
+                return;
+            }
+
+            showLoading('profitResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/crop/profit?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const topCrops = data.most_profitable_crops || [];
+                    
+                    let html = `
+                        <div class="result-card">
+                            <h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-money-bill-wave text-green-500"></i>
+                                Top Profitable Crops for ${state}, ${district}
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    `;
+
+                    topCrops.forEach((crop, index) => {
+                        html += `
+                            <div class="stat-card">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h5 class="font-semibold text-white">${crop.crop}</h5>
+                                    <span class="text-xs text-green-400 font-bold">#${index + 1}</span>
+                                </div>
+                                <p class="text-2xl font-bold text-green-400">₹${crop.expected_price.toLocaleString('en-IN', {maximumFractionDigits: 2})}</p>
+                                <p class="text-xs text-gray-400 mt-1">Expected price per quintal</p>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                    document.getElementById('profitResult').innerHTML = html;
+                } else {
+                    showError('profitResult', data.detail || 'Failed to calculate profit');
+                }
+            } catch (error) {
+                showError('profitResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+
+        // Price Forecast
+        document.getElementById('btnForecast').addEventListener('click', async () => {
+            const state = document.getElementById('forecastState').value;
+            const district = document.getElementById('forecastDistrict').value;
+            const commodity = document.getElementById('forecastCommodity').value;
+
+            if (!state || !district || !commodity) {
+                showError('forecastResult', 'Please fill in all fields');
+                return;
+            }
+
+            showLoading('forecastResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/price/forecast?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}&commodity=${encodeURIComponent(commodity)}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const forecast = data.forecast_next_6_months || [];
+                    const lastPrices = data.last_3_modal_prices_used || [];
+                    const note = data.note || '';
+                    
+                    document.getElementById('forecastResult').innerHTML = `
+                        <div class="result-card">
+                            <div class="mb-4">
+                                <h4 class="text-lg font-semibold text-white mb-2">Price Forecast - ${commodity}</h4>
+                                <p class="text-sm text-gray-400">${state}, ${district}</p>
+                                ${note ? `<p class="text-xs text-yellow-400 mt-2"><i class="fas fa-info-circle"></i> ${note}</p>` : ''}
+                                <p class="text-xs text-gray-500 mt-1">Based on ${data.matched_rows_used || 0} historical data points</p>
+                            </div>
+                            
+                            ${lastPrices.length > 0 ? `
+                                <div class="mb-4 p-4 bg-green-500/5 border border-green-500/20 rounded-lg">
+                                    <p class="text-sm text-gray-400 mb-2">Recent Historical Prices:</p>
+                                    <div class="flex gap-3">
+                                        ${lastPrices.map((price, i) => `
+                                            <div>
+                                                <p class="text-xs text-gray-500">Month -${lastPrices.length - i}</p>
+                                                <p class="text-lg font-bold text-white">₹${price.toFixed(2)}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <canvas id="forecastChart" class="w-full" style="max-height: 400px;"></canvas>
+                        </div>
+                    `;
+
+                    const ctx = document.getElementById('forecastChart').getContext('2d');
+                    
+                    if (priceChart) {
+                        priceChart.destroy();
+                    }
+
+                    priceChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: forecast.map((_, i) => `Month ${i + 1}`),
+                            datasets: [{
+                                label: 'Predicted Price (₹/quintal)',
+                                data: forecast,
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#22c55e',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e5e7eb',
+                                        font: {
+                                            family: 'Inter',
+                                            size: 12
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                    titleColor: '#22c55e',
+                                    bodyColor: '#e5e7eb',
+                                    borderColor: '#22c55e',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: false,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return '₹' + context.parsed.y.toFixed(2) + '/quintal';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    grid: {
+                                        color: 'rgba(34, 197, 94, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: '#94a3b8',
+                                        font: {
+                                            size: 11
+                                        },
+                                        callback: function(value) {
+                                            return '₹' + value.toFixed(0);
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(34, 197, 94, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: '#94a3b8',
+                                        font: {
+                                            size: 11
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    showError('forecastResult', data.detail || 'Failed to generate forecast');
+                }
+            } catch (error) {
+                showError('forecastResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+
+        // Best Markets
+        document.getElementById('btnMarkets').addEventListener('click', async () => {
+            const commodity = document.getElementById('marketCommodity').value;
+
+            if (!commodity) {
+                showError('marketsResult', 'Please enter a commodity name');
+                return;
+            }
+
+            showLoading('marketsResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/price/markets?commodity=${encodeURIComponent(commodity)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const commodity = data.commodity || marketCommodity.value;
+                    const bestMarket = data.best_market || '';
+                    const bestDistrict = data.best_district || '';
+                    const bestState = data.best_state || '';
+                    const highestPrice = data.highest_modal_price || 0;
+                    
+                    document.getElementById('marketsResult').innerHTML = `
+                        <div class="result-card">
+                            <h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-map-marker-alt text-green-500"></i>
+                                Best Market for ${commodity}
+                            </h4>
+                            
+                            <div class="market-item bg-green-500/10 border-2 border-green-500">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="text-green-500 font-bold text-xl">
+                                                <i class="fas fa-trophy"></i>
+                                            </span>
+                                            <h5 class="font-bold text-white text-xl">${bestMarket}</h5>
+                                        </div>
+                                        <p class="text-sm text-gray-300 mb-1">
+                                            <i class="fas fa-map-pin text-green-500"></i> 
+                                            ${bestDistrict}, ${bestState}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-green-400">₹${highestPrice.toLocaleString('en-IN', {maximumFractionDigits: 2})}</p>
+                                        <p class="text-xs text-gray-400">per quintal</p>
+                                        <p class="text-sm text-green-400 mt-2 font-semibold">₹${(highestPrice / 100).toFixed(2)}/kg</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    showError('marketsResult', data.detail || 'Failed to fetch market data');
+                }
+            } catch (error) {
+                showError('marketsResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+
+        // Fertilizer NPK
+        document.getElementById('btnFertilizer').addEventListener('click', async () => {
+            const crop = document.getElementById('fertilizerCrop').value;
+            const N = document.getElementById('fertilizerN').value;
+            const P = document.getElementById('fertilizerP').value;
+            const K = document.getElementById('fertilizerK').value;
+
+            if (!crop || !N || !P || !K) {
+                showError('fertilizerResult', 'Please fill in all fields');
+                return;
+            }
+
+            showLoading('fertilizerResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/fertilizer/npk?crop=${encodeURIComponent(crop)}&N=${N}&P=${P}&K=${K}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const rec = data.needed || {};
+                    
+                    document.getElementById('fertilizerResult').innerHTML = `
+                        <div class="result-card">
+                            <h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-seedling text-green-500"></i>
+                                Fertilizer Analysis for ${data.crop || crop}
+                            </h4>
+                            
+                            <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                <h5 class="text-sm font-semibold text-blue-400 mb-2">Current Soil Levels</h5>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-xs text-gray-400">Nitrogen</p>
+                                        <p class="text-xl font-bold text-white">${data.soil_N || data.soil_n || N} kg/ha</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Phosphorus</p>
+                                        <p class="text-xl font-bold text-white">${data.soil_P || data.soil_p || P} kg/ha</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-400">Potassium</p>
+                                        <p class="text-xl font-bold text-white">${data.soil_K || data.soil_k || K} kg/ha</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/30 rounded-lg p-6">
+                                <h5 class="font-semibold text-white mb-4 flex items-center gap-2">
+                                    <i class="fas fa-lightbulb text-green-400"></i>
+                                    Recommended Fertilizer Application
+                                </h5>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="stat-card">
+                                        <p class="text-sm text-gray-400 mb-1">Additional Nitrogen</p>
+                                        <p class="text-3xl font-bold text-green-400">${rec.N || rec.n || 0}</p>
+                                        <p class="text-xs text-gray-400 mt-1">kg per hectare</p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <p class="text-sm text-gray-400 mb-1">Additional Phosphorus</p>
+                                        <p class="text-3xl font-bold text-green-400">${rec.P || rec.p || 0}</p>
+                                        <p class="text-xs text-gray-400 mt-1">kg per hectare</p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <p class="text-sm text-gray-400 mb-1">Additional Potassium</p>
+                                        <p class="text-3xl font-bold text-green-400">${rec.K || rec.k || 0}</p>
+                                        <p class="text-xs text-gray-400 mt-1">kg per hectare</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    showError('fertilizerResult', data.detail || 'Failed to analyze NPK levels');
+                }
+            } catch (error) {
+                showError('fertilizerResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+
+        // Crop Calendar
+        document.getElementById('btnCalendar').addEventListener('click', async () => {
+            const state = document.getElementById('calendarState').value;
+            const district = document.getElementById('calendarDistrict').value;
+
+            if (!state || !district) {
+                showError('calendarResult', 'Please fill in both state and district');
+                return;
+            }
+
+            showLoading('calendarResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/crop/calendar?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const calendar = data.calendar || [];
+                    
+                    let html = `
+                        <div class="result-card">
+                            <h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-green-500"></i>
+                                Crop Calendar for ${state}, ${district}
+                            </h4>
+                    `;
+
+                    if (calendar.length === 0) {
+                        html += `<p class="text-gray-400 text-center py-8">No calendar data available for this location.</p>`;
+                    } else {
+                        html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
+                        
+                        calendar.forEach(item => {
+                            const month = item.month || 'Unknown';
+                            const rainfall = item.rainfall_mm || 0;
+                            const crops = item.recommended_crops || [];
+                            
+                            if (crops.length > 0) {
+                                html += `
+                                    <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-lg p-4 hover:border-green-500/50 transition-all">
+                                        <h5 class="font-bold text-white mb-1 flex items-center gap-2">
+                                            <i class="fas fa-calendar text-green-500"></i>
+                                            ${month}
+                                        </h5>
+                                        <p class="text-xs text-gray-400 mb-3">
+                                            <i class="fas fa-cloud-rain text-blue-400"></i> 
+                                            ${rainfall.toFixed(1)} mm rainfall
+                                        </p>
+                                        <div class="space-y-2">
+                                            ${crops.map(crop => `
+                                                <div class="flex items-center gap-2 bg-green-500/5 px-3 py-2 rounded-md">
+                                                    <i class="fas fa-seedling text-green-400 text-xs"></i>
+                                                    <span class="text-sm text-gray-200 capitalize">${crop}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+
+                        html += `</div>`;
+                    }
+
+                    html += `</div>`;
+                    document.getElementById('calendarResult').innerHTML = html;
+                } else {
+                    showError('calendarResult', data.detail || 'Failed to fetch calendar data');
+                }
+            } catch (error) {
+                showError('calendarResult', 'Network error. Please ensure the API is running on localhost:8000');
+            }
+        });
+        // Yield Variability Analysis
+        document.getElementById('btnYieldAnalyze').addEventListener('click', async () => {
+            const field = document.getElementById('yieldFieldID').value;
+            const zone = document.getElementById('yieldZoneID').value;
+            const sn = document.getElementById('yieldN').value;
+            const sp = document.getElementById('yieldP').value;
+            const sk = document.getElementById('yieldK').value;
+            const temp = document.getElementById('yieldTemp').value;
+            const hum = document.getElementById('yieldHum').value;
+            const rain = document.getElementById('yieldRain').value;
+            const irrig = document.getElementById('yieldIrrig').value;
+
+            if (!field || !zone || !sn || !sp || !sk || !temp || !hum || !rain || !irrig) {
+                showError('yieldResult', 'Please fill in all simulation parameters for the zone');
+                return;
+            }
+
+            showLoading('yieldResult');
+
+            try {
+                const payload = {
+                    Time: "",
+                    FieldID: field,
+                    ZoneID: zone,
+                    soil_nitrogen: parseFloat(sn),
+                    soil_phosphorus: parseFloat(sp),
+                    soil_potassium: parseFloat(sk),
+                    temperature: parseFloat(temp),
+                    humidity: parseFloat(hum),
+                    rainfall: parseFloat(rain),
+                    irrigation_hours: parseFloat(irrig)
+                };
+
+                const response = await fetch(`${API_BASE}/yield/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+
+                if (response.ok) {
+                    let html = `
+                        <div class="result-card mt-6 border-blue-500/30 bg-blue-500/5">
+                            <h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-microscope text-blue-400"></i>
+                                Yield Explanation for ${data.FieldID} - ${data.ZoneID}
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                                    <p class="text-gray-400 text-sm mb-1">Predicted Yield</p>
+                                    <p class="text-2xl font-bold text-white">${data.PredictedYield}</p>
+                                    <p class="text-indigo-400 text-xs shadow-none">(${data.PredictedValue} units)</p>
+                                </div>
+                                <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                                    <p class="text-gray-400 text-sm mb-1">Top Attributing Factor</p>
+                                    <p class="text-2xl font-bold text-orange-400">${data.TopFactor.replace(/_/g, ' ')}</p>
+                                    <p class="text-gray-500 text-xs shadow-none">Logged to evidence tracker at ${data.Time}</p>
+                                </div>
+                            </div>
+                            
+                            <h5 class="text-md text-gray-300 font-medium mb-3">Feature Impact (SHAP Values)</h5>
+                            <div class="space-y-3">
+                    `;
+                    
+                    // Sort features by absolute impact
+                    const impacts = Object.entries(data.FeatureImpacts)
+                        .map(([k, v]) => ({ feature: k, value: v, abs: Math.abs(v) }))
+                        .sort((a, b) => b.abs - a.abs);
+                        
+                    impacts.forEach(impact => {
+                        const isPositive = impact.value > 0;
+                        const width = Math.min((impact.abs / impacts[0].abs) * 100, 100);
+                        const colorClass = isPositive ? 'bg-green-500' : 'bg-red-500';
+                        const textClass = isPositive ? 'text-green-400' : 'text-red-400';
+                        
+                        html += `
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-gray-300 capitalize">${impact.feature.replace(/_/g, ' ')}</span>
+                                    <span class="${textClass} font-mono">${isPositive ? '+' : ''}${impact.value}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="${colorClass} h-2 rounded-full" style="width: ${width}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                    document.getElementById('yieldResult').innerHTML = html;
+                } else {
+                    showError('yieldResult', data.detail || 'Prediction failed');
+                }
+            } catch (error) {
+                showError('yieldResult', 'API network error. Is localhost:8000 running?');
+            }
+        });
+    </script>
+</body>
+</html>
