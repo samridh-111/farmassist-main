@@ -1,0 +1,16 @@
+/Users/samridhsuresh/Downloads/farmassist-main/app/data_loader.py:21: FutureWarning: The argument 'infer_datetime_format' is deprecated and will be removed in a future version. A strict version of it is now the default, see https://pandas.pydata.org/pdeps/0004-consistent-to-datetime-parsing.html. You can safely remove this argument.
+  return pd.read_csv(path, parse_dates=["arrival_date"], dayfirst=True, infer_datetime_format=True)
+/Users/samridhsuresh/Downloads/farmassist-main/app/data_loader.py:21: FutureWarning: The argument 'infer_datetime_format' is deprecated and will be removed in a future version. A strict version of it is now the default, see https://pandas.pydata.org/pdeps/0004-consistent-to-datetime-parsing.html. You can safely remove this argument.
+  return pd.read_csv(path, parse_dates=["arrival_date"], dayfirst=True, infer_datetime_format=True)
+INFO:     Started server process [4066]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49723 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49723 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49747 - "OPTIONS /yield/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49747 - "POST /yield/analyze HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4066]

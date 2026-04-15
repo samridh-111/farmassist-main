@@ -17,7 +17,7 @@ FarmAssist is a Cloud Microservice-Based Machine-Learning Framework for Interpre
 
 3. Run the FastAPI Application:
    ```bash
-   uvicorn app/main:app --reload
+   uvicorn app.main:app --reload
    ```
    Open `frontend/index.html` in your browser.
 
